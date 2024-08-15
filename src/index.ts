@@ -11,7 +11,19 @@ const chat_engine = process.env.AIWELCOME_CHAT_ENGINE as string;
 const chat_origin = process.env.AIWELCOME_CHAT_ORIGIN as string;
 const url = `${base_url}/projects/${project_id}/chatengines/${chat_engine}/query`;
 
-const answer = (question: any, ctx: any) => {
+const answer = (question: any, ctx: any, pub = true) => {
+  const rep = (message: any) => {
+    if (pub) {
+      ctx.reply(message, {
+        reply_to_message_id: ctx.message.message_id,
+      });
+    } else {
+      console.log(ctx.message);
+      ctx.reply(`${question} \n${message}`, {
+        chat_id: ctx.message.from.id,
+      });
+    }
+  };
   const formData = new URLSearchParams();
   formData.append('prompt', question);
   formData.append('k', api_key);
@@ -26,13 +38,9 @@ const answer = (question: any, ctx: any) => {
     if (response.status === 200) {
       response.json().then((data: any) => {
         if (!data.error) {
-          ctx.reply(data.textRaw, {
-            reply_to_message_id: ctx.message.message_id,
-          });
+          rep(data.textRaw);
         } else {
-          ctx.reply('Sorry, something is wroing. Ask @HeyCap for support', {
-            reply_to_message_id: ctx.message.message_id,
-          });
+          rep('Sorry, something is wrong. Ask @HeyCap for support');
         }
       });
     } else {
@@ -50,7 +58,7 @@ bot.on('text', async (ctx, bot) => {
   } else if (type === 'group' || type === 'supergroup') {
     if (ctx.message.text.includes('@superteamUK_bot')) {
       const question = ctx.message.text.replace('@superteamUK_bot', '');
-      answer(question, ctx);
+      answer(question, ctx, false);
     }
   }
 });
