@@ -56,12 +56,12 @@ bot.on('text', async (ctx) => {
         : null,
     };
 
-    addMessageToConversation(chatId, messageObj);
-
     const chatType = ctx.message.chat.type;
     if (chatType === 'private') {
       await handleMessage(ctx, ctx.message.text, true);
     } else if (chatType === 'group' || chatType === 'supergroup') {
+      // only add messages to conversation if it's a group chat
+      addMessageToConversation(chatId, messageObj);
       if (ctx.message.text.includes('@superteamUK_bot')) {
         const question = ctx.message.text
           .replace('@superteamUK_bot', '')
