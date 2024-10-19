@@ -28,10 +28,12 @@ async function handleMessage(ctx: any, question: string, isPrivate: boolean) {
     if (isPrivate) {
       ctx.reply(answer, {
         reply_to_message_id: ctx.message?.message_id,
+        parse_mode: 'MarkdownV2',
       });
     } else {
       ctx.reply(`${question}\n${answer}`, {
         chat_id: ctx.message?.from.id,
+        parse_mode: 'MarkdownV2',
       });
     }
   } catch (error) {

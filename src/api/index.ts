@@ -4,7 +4,10 @@ import {
   checkDatabaseConnection,
 } from '../services/database';
 import { summarizeConversations } from '../services/summarizer';
-import { getConversationsInMemory } from '../services/conversationHandler';
+import {
+  flushConversationsToDatabase,
+  getConversationsInMemory,
+} from '../services/conversationHandler';
 
 const app = express();
 app.use(express.json());
@@ -49,6 +52,16 @@ app.get('/state', async (req, res) => {
       .status(500)
       .json({ error: 'An error occurred while fetching application state.' });
   }
+});
+
+app.get('/flush', async (req, res) => {
+  try {
+    await flushConversationsToDatabase();
+  } catch (error) {
+    console.error('Error during scheduled flush:', error);
+    res.status(500).json({ error: 'An error occurred while flushing.' });
+  }
+  res.json({ message: 'Conversations flushed to database.' });
 });
 
 export function startServer(port: any) {
