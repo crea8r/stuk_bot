@@ -21,7 +21,7 @@ export async function summarizeConversations(
     const mistralResponse: any = await axios.post(
       'https://api.mistral.ai/v1/chat/completions',
       {
-        model: 'mistral-tiny',
+        model: 'pixtral-12b-2409',
         messages: [
           {
             role: 'system',

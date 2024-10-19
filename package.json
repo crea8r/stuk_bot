@@ -2,9 +2,9 @@
   "name": "stuk_bot",
   "version": "1.1.0",
   "description": "telegram bot for SuperteamUK",
-  "main": "dist/index.js",
+  "main": "dist/app.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node dist/app.js",
     "build": "tsc",
     "dev": "nodemon"
   },
