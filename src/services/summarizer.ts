@@ -13,7 +13,9 @@ export async function summarizeConversations(
   for (const row of conversations) {
     if (!row.messages) continue;
     console.log(row.messages);
+    console.log('typeof row.messages: ', typeof row.messages);
     const unescapedString = (row.messages + '').replace(/\\n/g, '\n');
+    console.log('unescapedString: ', unescapedString);
     const conversation = JSON.parse(unescapedString);
     const conversationText = conversation
       .map((msg: MessageObject) => `${msg.from}: ${msg.text}`)
