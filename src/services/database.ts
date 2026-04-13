@@ -8,15 +8,23 @@ export async function initDatabase(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query(`
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       CREATE TABLE IF NOT EXISTS conversations (
         id SERIAL PRIMARY KEY,
         chat_id BIGINT NOT NULL,
         messages JSONB NOT NULL,
         start_time TIMESTAMP NOT NULL,
         end_time TIMESTAMP NOT NULL,
-        summary TEXT
+        summary TEXT,
+        fact_id UUID
       );
       CREATE INDEX IF NOT EXISTS idx_chat_id_time ON conversations (chat_id, start_time, end_time);
+
+      CREATE TABLE IF NOT EXISTS objconvo (
+        id SERIAL PRIMARY KEY,
+        chat_id BIGINT NOT NULL,
+        object_id UUID NOT NULL
+      )
     `);
   } finally {
     client.release();
@@ -43,6 +51,35 @@ export async function saveConversationsToDatabase(
         conversation.messages[conversation.messages.length - 1].date;
       await client.query(query, [chatId, messages, startTime, endTime]);
     }
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+export async function saveFactId(id: number, factId: string): Promise<void> {
+  await pool.query('UPDATE conversations SET fact_id = $1 WHERE id = $2', [
+    factId,
+    id,
+  ]);
+}
+
+export async function upsertChatIdOrgId(
+  chatId: string,
+  objectId: string
+): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const query = `
+      INSERT INTO objconvo (chat_id, object_id)
+      VALUES ($1, $2)
+      ON CONFLICT (chat_id) DO UPDATE SET object_id = $2
+    `;
+    await client.query(query, [chatId, objectId]);
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');
