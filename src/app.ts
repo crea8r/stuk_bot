@@ -4,6 +4,7 @@ import { startBot } from './bot';
 import { startServer } from './api';
 import { PORT } from './config';
 import { flushConversationsToDatabase } from './services/conversationHandler';
+import { runScraperPipeline } from './services/scraper';
 
 async function main() {
   try {
@@ -20,7 +21,19 @@ async function main() {
       }
     }, 60 * 60 * 1000); // Run every hour
 
-    // TODO: Schedule every 8 hours to summarize conversations and create fact and push into Muninn
+    // Scraper scheduler: run on startup (async, non-blocking) and then every 24 hours
+    runScraperPipeline().catch((err) => {
+      console.error('Initial background scraping failed:', err);
+    });
+
+    setInterval(async () => {
+      try {
+        console.log('[Scheduler] Running 24h interval scraper pipeline...');
+        await runScraperPipeline();
+      } catch (error) {
+        console.error('Error during scheduled scraper run:', error);
+      }
+    }, 24 * 60 * 60 * 1000); // Run every 24 hours
   } catch (error) {
     console.error('Error starting the application:', error);
     process.exit(1);

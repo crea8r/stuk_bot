@@ -8,6 +8,7 @@ import {
   flushConversationsToDatabase,
   getConversationsInMemory,
 } from '../services/conversationHandler';
+import { runScraperPipeline } from '../services/scraper';
 
 const app = express();
 app.use(express.json());
@@ -62,6 +63,16 @@ app.get('/flush', async (req, res) => {
     res.status(500).json({ error: 'An error occurred while flushing.' });
   }
   res.json({ message: 'Conversations flushed to database.' });
+});
+
+app.get('/scrape', async (req, res) => {
+  try {
+    const stats = await runScraperPipeline();
+    res.json({ message: 'Scraping cycle completed.', stats });
+  } catch (error: any) {
+    console.error('Error during manual scrape API:', error);
+    res.status(500).json({ error: 'An error occurred during scraping.', details: error.message });
+  }
 });
 
 export function startServer(port: any) {
